@@ -9,7 +9,7 @@
 *{box-sizing:border-box}
 body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#2a1a6e,var(--bg));color:var(--text);font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:20px}
 .wrap{width:100%;max-width:440px;text-align:center}
-.logo{width:120px;height:70px;object-fit:contain;margin:10px auto;display:block;background:#fff;border-radius:14px;padding:8px}
+.logo{width:110px;height:110px;object-fit:contain;margin:10px auto;display:block;border-radius:50%}
 h1{font-size:20px;margin:10px 0 4px}
 h2{font-size:14px;color:var(--muted);font-weight:500;margin:18px 0 8px}
 .stars{display:flex;justify-content:center;gap:6px}
@@ -69,12 +69,39 @@ const T = {
 };
 const pick = a => a[Math.floor(Math.random() * a.length)];
 
+const R = {
+  mid: {
+    5: ["The staff were friendly and patient and explained everything clearly.", "Very helpful guidance in choosing what suited me.", "Accurate eye check-up and a smooth, hassle-free experience."],
+    4: ["Friendly staff and good service.", "Helpful guidance and a smooth experience."],
+    3: ["Service was okay, though there is room to improve."],
+    2: ["Service and waiting time could have been better."],
+    1: ["The service did not match what I expected."]
+  },
+  svc: {
+    5: s => `Really happy with the ${s} I got here.`,
+    4: s => `Satisfied with the ${s}.`,
+    3: s => `The ${s} was average.`,
+    2: s => `The ${s} could have been better.`,
+    1: s => `Not happy with the ${s}.`
+  },
+  all: 'I found everything I needed in one place.',
+  close: {
+    5: ["Will definitely visit again.", "Highly recommend to family and friends."],
+    4: ["Would visit again."],
+    3: ["Hoping for improvement next time."],
+    2: ["Hope they improve going forward."],
+    1: ["I hope they take this feedback on board."]
+  }
+};
+
 function localReview() {
+  const retail = C.type === 'retail';
   const b = C.name, s = service && service !== 'All' ? service.toLowerCase() : '';
-  const parts = [pick(T.open[rating]).replace('{b}', b), pick(T.mid[rating])];
-  if (s) parts.push(T.svc[rating](s));
-  else if (service === 'All') parts.push('We used several of their services and the quality was consistent.');
-  parts.push(pick(T.close[rating]));
+  const mid = retail ? R.mid : T.mid, svc = retail ? R.svc : T.svc, close = retail ? R.close : T.close;
+  const parts = [pick(T.open[rating]).replace('{b}', b), pick(mid[rating])];
+  if (s) parts.push(svc[rating](s));
+  else if (service === 'All') parts.push(retail ? R.all : 'We used several of their services and the quality was consistent.');
+  parts.push(pick(close[rating]));
   return parts.join(' ');
 }
 

@@ -7,5 +7,15 @@
     "whatsapp": "919999999999",
     "services": ["Social Media", "Website", "Ads", "All"],
     "aiEndpoint": ""
+  },
+  "shivam-opticals": {
+    "name": "Shivam Opticals",
+    "type": "retail",
+    "logo": "",
+    "accent": "#0ea5e9",
+    "placeId": "ChIJwS2UnON8mjkR0wWUOSIbJQg",
+    "whatsapp": "919415382565",
+    "services": ["Eye Test", "Spectacles", "Contact Lenses", "Sunglasses", "All"],
+    "aiEndpoint": ""
   }
 }
