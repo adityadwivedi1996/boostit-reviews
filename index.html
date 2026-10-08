@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Share your experience</title>
+<style>
+:root{--accent:#7c3aed;--bg:#0f0b24;--card:#1a1438;--text:#f4f1ff;--muted:#a79fd0}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(circle at top,#2a1a6e,var(--bg));color:var(--text);font-family:system-ui,sans-serif;display:flex;justify-content:center;padding:20px}
+.wrap{width:100%;max-width:440px;text-align:center}
+.logo{width:120px;height:70px;object-fit:contain;margin:10px auto;display:block;background:#fff;border-radius:14px;padding:8px}
+h1{font-size:20px;margin:10px 0 4px}
+h2{font-size:14px;color:var(--muted);font-weight:500;margin:18px 0 8px}
+.stars{display:flex;justify-content:center;gap:6px}
+.stars button{background:none;border:0;font-size:40px;cursor:pointer;color:#3b3366;padding:0}
+.stars button.on{color:#fbbf24}
+.chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.chip{border:1px solid #3b3366;background:var(--card);color:var(--text);padding:8px 16px;border-radius:99px;cursor:pointer;font-size:13px}
+.chip.on{background:var(--accent);border-color:var(--accent)}
+textarea{width:100%;min-height:130px;background:var(--card);color:var(--text);border:1px solid #3b3366;border-radius:14px;padding:14px;font:15px/1.5 system-ui;resize:vertical}
+.row{display:flex;gap:8px;margin-top:10px}
+.btn{flex:1;border:0;border-radius:99px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;color:#fff;background:linear-gradient(90deg,var(--accent),#c026d3)}
+.btn.sec{background:var(--card);border:1px solid #3b3366;flex:0 0 auto;padding:14px 18px}
+.note{font-size:12px;color:var(--muted);margin-top:14px}
+.note a{color:var(--muted)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#22c55e;color:#fff;padding:10px 18px;border-radius:99px;font-size:14px;opacity:0;transition:.3s;pointer-events:none}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"><p>Loading…</p></div>
+<div class="toast" id="toast">Copied! Opening Google…</div>
+<script>
+const $ = s => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const slug = params.get('c') || 'demo';
+let C, rating = 5, service = '', ai = false;
+
+const T = {
+  open: {
+    5: ["Excellent experience with {b}.", "Really happy with {b}.", "Highly recommend {b}.", "{b} exceeded my expectations."],
+    4: ["Good experience with {b}.", "Pleased with the work from {b}.", "Solid service from {b}."],
+    3: ["Decent experience with {b}.", "{b} did an okay job overall."],
+    2: ["My experience with {b} was below expectations."],
+    1: ["I was disappointed with {b}."]
+  },
+  mid: {
+    5: ["The team really listens before they act.", "Everything was delivered on time and well planned.", "Professional, responsive and easy to work with.", "Communication was clear at every step."],
+    4: ["The team was responsive and delivered on time.", "Good communication and a professional approach."],
+    3: ["Some things went well, but there is room to improve.", "Delivery was fine, communication could be better."],
+    2: ["Communication and delivery could have been better."],
+    1: ["Communication and delivery did not meet what was promised."]
+  },
+  svc: {
+    5: s => `Their ${s} work made a real difference for us.`,
+    4: s => `Happy with the ${s} work overall.`,
+    3: s => `The ${s} work was average.`,
+    2: s => `The ${s} work needed more attention.`,
+    1: s => `The ${s} work did not meet expectations.`
+  },
+  close: {
+    5: ["Looking forward to working together again.", "Will definitely continue with them.", "Would recommend to anyone looking for this."],
+    4: ["Would consider working with them again."],
+    3: ["Hoping for improvement next time."],
+    2: ["Hope they improve going forward."],
+    1: ["I hope they take this feedback on board."]
+  }
+};
+const pick = a => a[Math.floor(Math.random() * a.length)];
+
+function localReview() {
+  const b = C.name, s = service && service !== 'All' ? service.toLowerCase() : '';
+  const parts = [pick(T.open[rating]).replace('{b}', b), pick(T.mid[rating])];
+  if (s) parts.push(T.svc[rating](s));
+  else if (service === 'All') parts.push('We used several of their services and the quality was consistent.');
+  parts.push(pick(T.close[rating]));
+  return parts.join(' ');
+}
+
+async function generate() {
+  const box = $('#text');
+  if (C.aiEndpoint) {
+    try {
+      const r = await fetch(C.aiEndpoint, {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({business: C.name, service, rating})});
+      const j = await r.json();
+      if (j.review) { box.value = j.review; return; }
+    } catch (e) {}
+  }
+  box.value = localReview();
+}
+
+function render() {
+  document.documentElement.style.setProperty('--accent', C.accent || '#7c3aed');
+  document.title = `Review ${C.name}`;
+  $('#app').innerHTML = `
+    ${C.logo ? `<img class="logo" src="${C.logo}" alt="">` : ''}
+    <h1>How was your experience with ${C.name}?</h1>
+    <div class="stars" id="stars"></div>
+    <h2>Which service are you reviewing?</h2>
+    <div class="chips" id="chips"></div>
+    <h2>Your review (edit it however you like)</h2>
+    <textarea id="text"></textarea>
+    <div class="row">
+      <button class="btn sec" id="regen" title="New wording">↻</button>
+      <button class="btn" id="post">Copy &amp; post on Google</button>
+    </div>
+    <p class="note">${C.whatsapp ? `Want to share private feedback? <a href="https://wa.me/${C.whatsapp}" target="_blank">Message us on WhatsApp</a><br>` : ''}Please keep it honest and about your real experience.</p>`;
+  drawStars(); drawChips();
+  $('#regen').onclick = generate;
+  $('#post').onclick = postReview;
+  generate();
+}
+
+function drawStars() {
+  $('#stars').innerHTML = [1,2,3,4,5].map(n => `<button class="${n<=rating?'on':''}" data-n="${n}">★</button>`).join('');
+  document.querySelectorAll('#stars button').forEach(b => b.onclick = () => { rating = +b.dataset.n; drawStars(); generate(); });
+}
+function drawChips() {
+  $('#chips').innerHTML = C.services.map(s => `<button class="chip ${s===service?'on':''}">${s}</button>`).join('');
+  document.querySelectorAll('.chip').forEach(b => b.onclick = () => { service = service === b.textContent ? '' : b.textContent; drawChips(); generate(); });
+}
+
+async function postReview() {
+  const t = $('#text').value;
+  try { await navigator.clipboard.writeText(t); } catch (e) { $('#text').select(); document.execCommand('copy'); }
+  $('#toast').classList.add('show');
+  setTimeout(() => {
+    $('#toast').classList.remove('show');
+    location.href = `https://search.google.com/local/writereview?placeid=${C.placeId}`;
+  }, 900);
+}
+
+fetch('clients.json').then(r => r.json()).then(all => {
+  C = all[slug];
+  if (!C) { $('#app').innerHTML = '<p>Business not found.</p>'; return; }
+  render();
+}).catch(() => $('#app').innerHTML = '<p>Could not load.</p>');
+</script>
+</body>
+</html>

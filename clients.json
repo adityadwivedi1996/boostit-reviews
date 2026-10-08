@@ -1,0 +1,11 @@
+{
+  "demo": {
+    "name": "Demo Business",
+    "logo": "",
+    "accent": "#7c3aed",
+    "placeId": "PASTE_GOOGLE_PLACE_ID",
+    "whatsapp": "919999999999",
+    "services": ["Social Media", "Website", "Ads", "All"],
+    "aiEndpoint": ""
+  }
+}

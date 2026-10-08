@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boostit – QR Generator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+body{font-family:system-ui,sans-serif;max-width:480px;margin:0 auto;padding:20px}
+input,button{width:100%;padding:12px;margin:6px 0;font-size:15px;border-radius:10px;border:1px solid #ccc}
+button{background:#7c3aed;color:#fff;border:0;font-weight:600}
+#qr{display:flex;justify-content:center;margin:20px 0}
+code{word-break:break-all;font-size:12px}
+</style>
+</head>
+<body>
+<h2>Client QR generator</h2>
+<p>Add the client to <b>clients.json</b> first, then enter its key here.</p>
+<input id="slug" placeholder="client key (e.g. hash-innovation)">
+<input id="base" placeholder="Your site URL (e.g. https://boostit-reviews.pages.dev)">
+<button onclick="go()">Generate QR</button>
+<div id="qr"></div>
+<code id="link"></code>
+<script>
+function go(){
+  const base=(document.getElementById('base').value||location.href.replace(/[^/]*$/,'')).replace(/\/$/,'');
+  const url=`${base}/?c=${encodeURIComponent(document.getElementById('slug').value.trim())}`;
+  document.getElementById('qr').innerHTML='';
+  new QRCode(document.getElementById('qr'),{text:url,width:240,height:240});
+  document.getElementById('link').textContent=url;
+}
+</script>
+</body>
+</html>
